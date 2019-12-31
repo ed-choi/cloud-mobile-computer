@@ -10,11 +10,24 @@ import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+
+import android.widget.TextView;
+
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
 public class FullscreenActivity extends AppCompatActivity {
+
+    private SensorManager sense_manager;
+    private SensorEventListener sense_listener;
+    public TextView compass_yaw;
+    private Sensor sensor_orientation;
+
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -108,6 +121,36 @@ public class FullscreenActivity extends AppCompatActivity {
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+
+        compass_yaw = findViewById(R.id.compass_yaw);
+        sense_manager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        sensor_orientation = sense_manager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+        sense_listener = new SensorEventListener() {
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+                float yaw = event.values[0];
+                compass_yaw.setText(yaw + "");
+            }
+
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+            }
+        };
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+
+        sense_manager.unregisterListener(sense_listener);
+    }
+
+    @Override
+    protected void onResume(){
+        super.onResume();
+
+        sense_manager.registerListener(sense_listener,sensor_orientation,1000);
     }
 
     @Override
